@@ -10,8 +10,22 @@ uv sync
 
 ## Usage
 
+The script will prompt for your Plex password and handle 2FA if needed.
+
+### Transfer between Plex servers
+
 ```bash
-uv run python transfer_playlist.py --username YOUR_USERNAME --old-server "Old Server" --new-server "New Server" --playlist "Playlist Name"
+uv run python transfer_playlist.py transfer --username YOUR_USERNAME --source "Old Server" --dest "New Server" --playlist "Playlist Name"
 ```
 
-The script will prompt for your Plex password and handle 2FA if needed.
+### Export to M3U
+
+```bash
+uv run python transfer_playlist.py export --username YOUR_USERNAME --server "Server Name" --playlist "Playlist Name" --output playlist.m3u
+```
+
+### Import from M3U
+
+```bash
+uv run python transfer_playlist.py import --username YOUR_USERNAME --server "Server Name" --input playlist.m3u
+```
