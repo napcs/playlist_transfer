@@ -2,7 +2,12 @@
 
 Transfer video playlists between Plex servers, Jellyfin, and M3U files.
 
+> [!WARNING]
+> Claude wrote most of this code. I designed the app, and it works for me. But I don't know Python and there are probably bugs.
+
 ## Installation
+
+You need `uv` for this.
 
 ```bash
 uv sync
@@ -121,3 +126,7 @@ On export commands, if no `--path-map` is provided the tool will detect path pre
 ## Authentication
 
 Plex commands prompt for your password at runtime. 2FA is supported — you'll be prompted for the code if needed.
+
+## LICENSE
+
+MIT. Use at your own risk though.
