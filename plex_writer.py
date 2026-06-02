@@ -16,7 +16,7 @@ def write_plex_playlist(username: str, password: str, server_name: str, playlist
     return write_plex_playlist_with_account(account, server_name, playlist_name, items)
 
 
-def write_plex_playlist_with_account(account: MyPlexAccount, server_name: str, playlist_name: str, items: List[PlaylistItem]) -> bool:
+def write_plex_playlist_with_account(account: MyPlexAccount, server_name: str, playlist_name: str, items: List[PlaylistItem], overwrite: bool = False) -> bool:
     """Write a playlist to a Plex server using an existing account."""
     # Connect to server
     print(f"Connecting to server '{server_name}'...")
@@ -27,8 +27,12 @@ def write_plex_playlist_with_account(account: MyPlexAccount, server_name: str, p
     existing_playlists = plex.playlists()
     for playlist in existing_playlists:
         if playlist.title == playlist_name and playlist.playlistType == 'video':
-            print(f"Found playlist: {playlist.title} with {len(playlist.items())} items on server. Stopping.")
-            return False
+            if overwrite:
+                print(f"Deleting existing playlist '{playlist_name}'...")
+                playlist.delete()
+            else:
+                print(f"Playlist '{playlist_name}' already exists. Use --overwrite to replace it.")
+                return False
 
     print(f"No video playlist named '{playlist_name}' found on server. We can proceed")
 
