@@ -107,7 +107,7 @@ def write_jellyfin_api_playlist(
 def _find_playlist_id(get_fn: Callable, playlist_name: str) -> Optional[str]:
     """Return the ID of an existing Jellyfin playlist with the given name, or None."""
     try:
-        data = get_fn('/Playlists')
+        data = get_fn('/Items?IncludeItemTypes=Playlist&Recursive=true')
         for p in data.get('Items', []):
             if p.get('Name', '').lower() == playlist_name.lower():
                 return p['Id']

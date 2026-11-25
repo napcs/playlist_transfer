@@ -318,6 +318,14 @@ def _prompt_jellyfin_user_id(server_url, api_key):
     try:
         with urllib.request.urlopen(req) as resp:
             users = json.loads(resp.read().decode())
+    except json.JSONDecodeError:
+        # A non-JSON reply means this URL is not the Jellyfin API (e.g. a web
+        # page or redirect), so a manually entered user ID would not help.
+        raise ValueError(
+            f"{server_url} did not return a Jellyfin API response. "
+            "Check the server URL (a port goes before any sub-path, "
+            "e.g. https://host/jellyfin, not https://host/jellyfin:8096)."
+        )
     except Exception as e:
         print(f"Could not fetch Jellyfin users: {e}")
         return input("Enter Jellyfin user UUID: ").strip()

@@ -68,7 +68,8 @@ def read_jellyfin_api_playlist(
             return json.loads(resp.read().decode())
 
     # Find the playlist by name
-    data = get('/Playlists?Fields=Path')
+    # GET /Playlists is not a list endpoint (405 on Jellyfin 10.11); query Items instead
+    data = get('/Items?IncludeItemTypes=Playlist&Recursive=true&Fields=Path')
     playlists = data.get('Items', [])
     target = next(
         (p for p in playlists if p.get('Name', '').lower() == playlist_name.lower()),
@@ -82,9 +83,7 @@ def read_jellyfin_api_playlist(
     print(f"Found playlist: {found_name} (id={playlist_id})")
 
     # Fetch playlist items with MediaSources so we get file paths
-    items_data = get(
-        f'/Playlists/{playlist_id}/Items?Fields=MediaSources,Path'
-    )
+    items_data = _get_playlist_items(get, playlist_id)
     items = []
     for entry in items_data.get('Items', []):
         file_path = _extract_path_from_api_item(entry)
@@ -111,6 +110,36 @@ def read_jellyfin_api_playlist(
         items.append(item)
 
     return found_name, items
+
+
+def _get_playlist_items(get, playlist_id: str) -> dict:
+    """Fetch playlist items, supplying a UserId when the server requires one.
+
+    Jellyfin 10.11 rejects this call (400) when authenticated with an API key
+    and no UserId, and only users with access to the playlist may read it. Try
+    without a user first (older servers), then each user until one succeeds.
+    """
+    import urllib.error
+
+    path = f'/Playlists/{playlist_id}/Items?Fields=MediaSources,Path'
+    try:
+        return get(path)
+    except urllib.error.HTTPError as e:
+        if e.code not in (400, 401, 403, 404):
+            raise
+        last_error = e
+
+    users = get('/Users')
+    # Admins first: most likely to own or have access to the playlist
+    users.sort(key=lambda u: not (u.get('Policy') or {}).get('IsAdministrator', False))
+    for user in users:
+        try:
+            return get(f"{path}&UserId={user['Id']}")
+        except urllib.error.HTTPError as e:
+            if e.code not in (400, 401, 403, 404):
+                raise
+            last_error = e
+    raise last_error
 
 
 def _extract_path_from_api_item(entry: dict) -> Optional[str]:

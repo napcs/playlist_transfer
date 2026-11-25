@@ -73,6 +73,15 @@ Writing to Jellyfin requires a server URL and API key. The writer scans the enti
 
 Reading from Jellyfin can use a `playlist.xml` file directly (no auth) or the API.
 
+**Jellyfin API notes (verified against Jellyfin source `PlaylistsController.cs`, 10.8–10.11):**
+- There is no `GET /Playlists` list endpoint in any version (it returns 405; the route is `POST`-only, for create). List playlists with `GET /Items?IncludeItemTypes=Playlist&Recursive=true`.
+- `GET /Playlists/{id}/Items` needs a user. `userId` was a required query param in 10.8; from 10.9 it is optional but falls back to the user behind the auth token. An API key has no user, so the call fails (400) unless `UserId` is passed.
+- The API does not expose a playlist's owner (it is only in `playlist.xml` as `OwnerUserId`). A user can read a playlist if it is open-access, they own it, or it is shared with them; otherwise 403. `jellyfin_reader.py` therefore lists users with `GET /Users` (API keys are admin-level) and tries each, admins first, until one is accepted.
+- On create (`POST /Playlists` with JSON body `Name`, `Ids`, `UserId`), `UserId` becomes the new playlist's owner, which is why the write commands take `--user-id` or prompt.
+- Server URLs with a sub-path put any port before the path (e.g. `https://host/jellyfin`, not `https://host/jellyfin:8096`).
+
+**Working practice:** when a fix depends on third-party API behaviour, verify the cause against the upstream docs or source for the relevant version before editing code.
+
 **Item matching strategy in plex_writer.py:**
 1. For TV episodes: matches by show title + season + episode number (caches all episodes per show for efficiency)
 2. For movies: exact title match
