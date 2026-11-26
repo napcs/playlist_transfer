@@ -73,7 +73,8 @@ Writing to Jellyfin requires a server URL and API key. The writer scans the enti
 
 Reading from Jellyfin can use a `playlist.xml` file directly (no auth) or the API.
 
-**Jellyfin API notes (verified against Jellyfin source `PlaylistsController.cs`, 10.8–10.11):**
+**Jellyfin API notes (verified against Jellyfin source `PlaylistsController.cs`, 10.8–12.4):**
+- Authenticate with `Authorization: MediaBrowser Token="KEY"`. The legacy `X-Emby-Token` / `X-MediaBrowser-Token` headers and `api_key` query param only work when the server's `EnableLegacyAuthorization` setting is on; it defaulted to on in 10.11 and off in 12.x (verified in `AuthorizationContext.cs` and `ServerConfiguration.cs`, v10.11.6 vs v12.4), so they return 401 on a default 12.x server.
 - There is no `GET /Playlists` list endpoint in any version (it returns 405; the route is `POST`-only, for create). List playlists with `GET /Items?IncludeItemTypes=Playlist&Recursive=true`.
 - `GET /Playlists/{id}/Items` needs a user. `userId` was a required query param in 10.8; from 10.9 it is optional but falls back to the user behind the auth token. An API key has no user, so the call fails (400) unless `UserId` is passed.
 - The API does not expose a playlist's owner (it is only in `playlist.xml` as `OwnerUserId`). A user can read a playlist if it is open-access, they own it, or it is shared with them; otherwise 403. `jellyfin_reader.py` therefore lists users with `GET /Users` (API keys are admin-level) and tries each, admins first, until one is accepted.

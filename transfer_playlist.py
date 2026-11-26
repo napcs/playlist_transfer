@@ -313,7 +313,7 @@ def _prompt_jellyfin_user_id(server_url, api_key):
     server_url = server_url.rstrip('/')
     req = urllib.request.Request(
         f"{server_url}/Users",
-        headers={'X-Emby-Token': api_key, 'Accept': 'application/json'},
+        headers={'Authorization': f'MediaBrowser Token="{api_key}"', 'Accept': 'application/json'},
     )
     try:
         with urllib.request.urlopen(req) as resp:

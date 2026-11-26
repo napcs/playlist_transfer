@@ -48,7 +48,7 @@ def write_jellyfin_api_playlist(
         req = urllib.request.Request(
             f"{server_url.rstrip('/')}{path}", data=data,
             headers={
-                'X-Emby-Token': api_key,
+                'Authorization': f'MediaBrowser Token="{api_key}"',
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
@@ -120,7 +120,7 @@ def _delete_item(server_url: str, api_key: str, item_id: str):
     """Delete a Jellyfin item by ID."""
     req = urllib.request.Request(
         f"{server_url.rstrip('/')}/Items/{item_id}",
-        headers={'X-Emby-Token': api_key},
+        headers={'Authorization': f'MediaBrowser Token="{api_key}"'},
         method='DELETE',
     )
     urllib.request.urlopen(req).close()
@@ -129,7 +129,7 @@ def _delete_item(server_url: str, api_key: str, item_id: str):
 def _make_get(server_url: str, api_key: str) -> Callable:
     """Return a simple GET function for the given Jellyfin server."""
     base = server_url.rstrip('/')
-    headers = {'X-Emby-Token': api_key, 'Accept': 'application/json'}
+    headers = {'Authorization': f'MediaBrowser Token="{api_key}"', 'Accept': 'application/json'}
 
     def get(path):
         req = urllib.request.Request(f"{base}{path}", headers=headers)

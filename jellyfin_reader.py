@@ -60,7 +60,7 @@ def read_jellyfin_api_playlist(
     import json
 
     server_url = server_url.rstrip('/')
-    headers = {'X-Emby-Token': api_key, 'Accept': 'application/json'}
+    headers = {'Authorization': f'MediaBrowser Token="{api_key}"', 'Accept': 'application/json'}
 
     def get(path):
         req = urllib.request.Request(f"{server_url}{path}", headers=headers)
